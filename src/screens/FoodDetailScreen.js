@@ -1,5 +1,5 @@
 // src/screens/FoodDetailScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,28 @@ import {
   Alert,
   SafeAreaView
 } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CustomButton from '../components/CustomButton';
 import Colors from '../constants/colors';
 import { getDaysRemaining, getExpiryStatusColor, formatDate } from '../utils/dateUtils';
+import { useFoodContext } from '../context/FoodContext';
 
-const FoodDetailScreen = ({ route, navigation }) => {
-  const { food } = route.params;
+const FoodDetailScreen = ({ navigation }) => {
+  const route = useRoute();
+  const { food, updated } = route.params || {};
   const [consumed, setConsumed] = useState(false);
+  
+  // Get food management functions from context
+  const { updateFood, deleteFood } = useFoodContext();
+  
+  // Update food in context if it was edited
+  useEffect(() => {
+    if (updated && food) {
+      console.log('Food updated in DetailScreen, syncing with context:', food);
+      updateFood(food);
+    }
+  }, [updated, food, updateFood]);
   
   const daysRemaining = getDaysRemaining(food.expiryDate);
   const statusColor = getExpiryStatusColor(daysRemaining);
@@ -41,6 +55,8 @@ const FoodDetailScreen = ({ route, navigation }) => {
             setConsumed(true);
             // 在實際應用中，這裡會更新數據庫
             setTimeout(() => {
+              // Delete from context when consumed
+              deleteFood(food.id);
               navigation.goBack();
             }, 1500);
           },
@@ -63,7 +79,8 @@ const FoodDetailScreen = ({ route, navigation }) => {
           text: '刪除',
           style: 'destructive',
           onPress: () => {
-            // 在實際應用中，這裡會從數據庫刪除
+            // Delete from context
+            deleteFood(food.id);
             navigation.goBack();
           },
         },
@@ -157,7 +174,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
       {consumed && (
         <View style={styles.consumedOverlay}>
           <Icon name="check-circle" size={60} color={Colors.success} />
-          <Text style={styles.consumedText}>已標記為消費</Text>
+          <Text style={styles.consumedText}>已吃完</Text>
         </View>
       )}
       
@@ -210,7 +227,6 @@ const FoodDetailScreen = ({ route, navigation }) => {
         
         {renderExpiryStatus()}
         {renderInfoCard()}
-        
         <View style={styles.suggestionsContainer}>
           <Text style={styles.suggestionsTitle}>相關建議</Text>
           
@@ -260,7 +276,7 @@ const FoodDetailScreen = ({ route, navigation }) => {
       
       <View style={styles.footer}>
         <CustomButton
-          title="標記為已消費"
+          title="吃完"
           onPress={handleConsume}
           type="primary"
           fullWidth

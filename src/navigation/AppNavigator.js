@@ -12,6 +12,7 @@ import AddFoodScreen from '../screens/AddFoodScreen';
 import FoodDetailScreen from '../screens/FoodDetailScreen';
 import StatsScreen from '../screens/StatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import EditFoodScreen from '../screens/EditFoodScreen';
 
 // 引入顏色
 import Colors from '../constants/colors';
@@ -29,6 +30,7 @@ const HomeStack = () => (
   >
     <Stack.Screen name="HomeMain" component={HomeScreen} />
     <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
+    <Stack.Screen name="EditFood" component={EditFoodScreen} />
   </Stack.Navigator>
 );
 

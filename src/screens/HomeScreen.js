@@ -8,26 +8,37 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  ActivityIndicator
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
+//import Icon from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome5 as Icon} from '@expo/vector-icons';
+
 import FoodCard from '../components/FoodCard';
 import Colors from '../constants/colors';
-import { generateMockFoodData } from '../utils/foodUtils';
 import { getDaysRemaining } from '../utils/dateUtils';
+import { useFoodContext } from '../context/FoodContext';
 
 const HomeScreen = ({ navigation }) => {
-  const [foods, setFoods] = useState([]);
+  const { foods, loading } = useFoodContext();
   const [filteredFoods, setFilteredFoods] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   
+  // Refresh data when the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('HomeScreen focused, refreshing data');
+      applyFilters(activeFilter, searchText);
+      return () => {};
+    }, [foods, activeFilter, searchText])
+  );
+  
+  // Initial filtering when foods change
   useEffect(() => {
-    // 模擬從資料庫載入食物資料
-    const foodData = generateMockFoodData(15);
-    setFoods(foodData);
-    setFilteredFoods(foodData);
-  }, []);
+    applyFilters(activeFilter, searchText);
+  }, [foods]);
   
   // 過濾器選項
   const filters = [
@@ -37,22 +48,22 @@ const HomeScreen = ({ navigation }) => {
     { id: 'freezer', label: '冷凍' },
   ];
   
-  // 處理過濾器選擇
-  const handleFilterSelect = (filterId) => {
-    setActiveFilter(filterId);
+  // Apply both search and category filters
+  const applyFilters = (filter, search) => {
+    if (loading) return;
     
     let result = [...foods];
     
-    // 套用搜尋過濾
-    if (searchText) {
+    // Apply search filter
+    if (search) {
       result = result.filter(food => 
-        food.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        food.category.toLowerCase().includes(searchText.toLowerCase())
+        food.name.toLowerCase().includes(search.toLowerCase()) ||
+        food.category.toLowerCase().includes(search.toLowerCase())
       );
     }
     
-    // 套用類別過濾
-    switch (filterId) {
+    // Apply category filter
+    switch (filter) {
       case 'expiring':
         result = result.filter(food => {
           const daysRemaining = getDaysRemaining(food.expiryDate);
@@ -66,28 +77,26 @@ const HomeScreen = ({ navigation }) => {
         result = result.filter(food => food.location === '冷凍');
         break;
       default:
-        // 'all' 不需要額外過濾
+        // 'all' doesn't need additional filtering
         break;
     }
     
+    // Sort by expiry date
+    result.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+    
     setFilteredFoods(result);
+  };
+  
+  // 處理過濾器選擇
+  const handleFilterSelect = (filterId) => {
+    setActiveFilter(filterId);
+    applyFilters(filterId, searchText);
   };
   
   // 處理搜尋
   const handleSearch = (text) => {
     setSearchText(text);
-    
-    if (!text) {
-      handleFilterSelect(activeFilter);
-      return;
-    }
-    
-    const result = foods.filter(food => 
-      food.name.toLowerCase().includes(text.toLowerCase()) ||
-      food.category.toLowerCase().includes(text.toLowerCase())
-    );
-    
-    setFilteredFoods(result);
+    applyFilters(activeFilter, text);
   };
   
   // 處理食物卡片點選
@@ -106,6 +115,14 @@ const HomeScreen = ({ navigation }) => {
       <Icon name="shopping-basket" size={50} color={Colors.textLight} />
       <Text style={styles.emptyTitle}>冰箱是空的</Text>
       <Text style={styles.emptyText}>點擊下方的 + 按鈕來添加食物</Text>
+    </View>
+  );
+
+  // 渲染載入中
+  const renderLoading = () => (
+    <View style={styles.emptyContainer}>
+      <ActivityIndicator size="large" color={Colors.primary} />
+      <Text style={styles.emptyTitle}>載入中...</Text>
     </View>
   );
   
@@ -163,17 +180,21 @@ const HomeScreen = ({ navigation }) => {
         />
       </View>
       
-      <FlatList
-        data={filteredFoods}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <FoodCard food={item} onPress={handleFoodPress} />
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={renderSeparator}
-        ListEmptyComponent={renderEmptyList}
-      />
+      {loading ? (
+        renderLoading()
+      ) : (
+        <FlatList
+          data={filteredFoods}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <FoodCard food={item} onPress={handleFoodPress} />
+          )}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={renderSeparator}
+          ListEmptyComponent={renderEmptyList}
+        />
+      )}
       
       <TouchableOpacity
         style={styles.addButton}
