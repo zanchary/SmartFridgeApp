@@ -7,11 +7,14 @@ import CustomButton from '../components/CustomButton';
 import { TextInput } from 'react-native-gesture-handler';
 import Colors from '../constants/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useFoodContext } from '../context/FoodContext';
+
 
 const EditFoodScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { food } = route.params;
+  const { updateFood } = useFoodContext();
 
   // Ensure dates are properly converted to Date objects
   const parsePurchaseDate = () => {
@@ -136,10 +139,14 @@ const EditFoodScreen = () => {
     };
 
     // Navigate back to detail screen with updated food and a flag
+    /*
     navigation.navigate('FoodDetail', { 
       food: updatedFood, 
       updated: true 
     });
+    */
+   updateFood(updatedFood);
+   navigation.navigate('HomeMain');
   };
 
   return (
