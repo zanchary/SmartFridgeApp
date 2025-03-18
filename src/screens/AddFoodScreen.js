@@ -20,8 +20,12 @@ import CustomButton from '../components/CustomButton';
 import Colors from '../constants/colors';
 import { getTodayString, addDays } from '../utils/dateUtils';
 import { getFoodCategories, getStorageLocations, getDefaultExpiryDays } from '../utils/foodUtils';
+import { useFoodContext } from '../context/FoodContext';
 
 const AddFoodScreen = ({ navigation }) => {
+  // Get addFood function from context
+  const { addFood } = useFoodContext();
+
   const [foodData, setFoodData] = useState({
     name: '',
     category: getFoodCategories()[0],
@@ -141,16 +145,23 @@ const AddFoodScreen = ({ navigation }) => {
       return;
     }
     
-    // 這裡通常會連接到資料庫儲存食物資料
+    // Generate a unique ID for the food item
+    const newFood = {
+      ...foodData,
+      id: Date.now().toString()
+    };
     
-    // 模擬儲存成功
+    // Add food to context
+    addFood(newFood);
+    
+    // Show success message
     Alert.alert(
       '成功',
       `${foodData.name} 已成功添加到冰箱`,
       [
         {
           text: '好的',
-          onPress: () => navigation.goBack()
+          onPress: () => navigation.navigate('Main')  // Navigate directly to home
         }
       ]
     );
