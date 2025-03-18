@@ -59,7 +59,7 @@ npx expo start
 ```bash
 # Clone the project
 git clone https://github.com/yourusername/smart-fridge-app.git
-cd smart-fridge-app
+cd SmartFridgeApp
 
 # Install dependencies
 npm install
