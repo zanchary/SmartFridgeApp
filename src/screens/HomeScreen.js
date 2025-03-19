@@ -12,8 +12,8 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-//import Icon from 'react-native-vector-icons/FontAwesome';
-import { FontAwesome5 as Icon} from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/FontAwesome';
+//import { FontAwesome5 as Icon} from '@expo/vector-icons';
 
 import FoodCard from '../components/FoodCard';
 import Colors from '../constants/colors';

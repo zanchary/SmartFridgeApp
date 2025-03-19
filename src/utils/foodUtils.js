@@ -29,11 +29,20 @@ export const getCategoryColor = (category) => {
 export const getLocationIcon = (location) => {
   switch (location.toLowerCase()) {
     case '冷藏':
-      return 'snowflake-o';
+      return {
+        name: 'snowflake-o',
+        family: 'FontAwesome'
+      };
     case '冷凍':
-      return 'snowflake';
+      return {
+        name: 'snowflake',
+        family: 'FontAwesome5'
+      };
     default:
-      return 'archive';
+      return {
+        name: 'archive',
+        family: 'FontAwesome5'
+      };
   }
 };
 
